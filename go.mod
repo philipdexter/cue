@@ -1,6 +1,7 @@
 module cuelang.org/go
 
 require (
+	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
 	github.com/cockroachdb/apd v1.1.0 // indirect
 	github.com/cockroachdb/apd/v2 v2.0.1
 	github.com/emicklei/proto v1.6.15
