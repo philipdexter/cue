@@ -32,6 +32,14 @@ in the current directory then the repl starts in freestyle mode.`,
 	return cmd
 }
 
+var autoComplete = readline.NewPrefixCompleter(
+	readline.PcItem(":help"),
+	readline.PcItem(":l"),
+	readline.PcItem(":lookup"),
+	readline.PcItem(":p"),
+	readline.PcItem(":print"),
+)
+
 func runRepl(cmd *Command, args []string) error {
 	fmt.Println("Welcome to the CUE repl")
 
@@ -49,6 +57,7 @@ func runRepl(cmd *Command, args []string) error {
 		HistorySearchFold: true,
 		EOFPrompt:         "^D",
 		InterruptPrompt:   "^C",
+		AutoComplete:      autoComplete,
 	})
 	if err != nil {
 		panic(err)
