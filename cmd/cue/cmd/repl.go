@@ -32,13 +32,51 @@ in the current directory then the repl starts in freestyle mode.`,
 	return cmd
 }
 
-var autoComplete = readline.NewPrefixCompleter(
-	readline.PcItem(":help"),
-	readline.PcItem(":l"),
-	readline.PcItem(":lookup"),
-	readline.PcItem(":p"),
-	readline.PcItem(":print"),
-)
+type completer struct{}
+
+func (*completer) Do(line []rune, pos int) ([][]rune, int) {
+
+	// TODO make better, since this will
+	// match 'a :_'
+	if pos > 0 && line[pos-1] == ':' {
+		return [][]rune{
+			[]rune("help"),
+			[]rune("l"),
+			[]rune("lookup"),
+			[]rune("p"),
+			[]rune("print"),
+		}, 1
+	}
+
+	out := make([][]rune, 0)
+
+	var r readline.Runes
+	if len(r.TrimSpaceLeft(line)) == 0 {
+		out = append(out, [][]rune{
+			[]rune(":help"),
+			[]rune(":l"),
+			[]rune(":lookup"),
+			[]rune(":p"),
+			[]rune(":print"),
+		}...)
+	}
+
+	// TODO make better, right now just always try
+	// to match a top level field label
+	bii, err := buildI()
+	if err != nil {
+		return nil, 0
+	}
+
+	if strct, err := bii.Value().Struct(); err == nil {
+		iter := strct.Fields()
+		for iter.Next() {
+			out = append(out, []rune(iter.Label()))
+		}
+	}
+
+	return out, 0
+}
 
 func runRepl(cmd *Command, args []string) error {
 	fmt.Println("Welcome to the CUE repl")
@@ -62,7 +100,7 @@ func runRepl(cmd *Command, args []string) error {
 		HistorySearchFold: true,
 		EOFPrompt:         "^D",
 		InterruptPrompt:   "^C",
-		AutoComplete:      autoComplete,
+		AutoComplete:      &completer{},
 	})
 	if err != nil {
 		panic(err)
@@ -170,6 +208,7 @@ func addExpr(expr string) error {
 }
 
 func buildI() (*cue.Instance, error) {
+	// TODO cache results, if nothing has changed
 	return r.Build(bi)
 }
 
