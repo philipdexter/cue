@@ -48,12 +48,17 @@ func runRepl(cmd *Command, args []string) error {
 		panic(err)
 	}
 	homeDir := usr.HomeDir
-	cueConfigDir := filepath.Join(homeDir, ".config", "cue", ".hist")
-	// TODO mkdir cueConfigDir
+	cueConfigDir := filepath.Join(homeDir, ".config", "cue")
+	if _, err := os.Stat(cueConfigDir); os.IsNotExist(err) {
+		err := os.MkdirAll(cueConfigDir, 0755)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
 
 	rl, err := readline.NewEx(&readline.Config{
 		Prompt:            "\033[34m>\033[0m ",
-		HistoryFile:       cueConfigDir,
+		HistoryFile:       filepath.Join(cueConfigDir, ".hist"),
 		HistorySearchFold: true,
 		EOFPrompt:         "^D",
 		InterruptPrompt:   "^C",
