@@ -99,7 +99,12 @@ func runRepl(cmd *Command, args []string) error {
 				fmt.Println(err)
 			}
 		} else {
-			err := addExpr(text)
+			var err error
+			if strings.HasPrefix(text, "@") {
+				err = addExpr(strings.TrimPrefix(text, "@"))
+			} else {
+				err = evalExpr(text)
+			}
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -118,6 +123,24 @@ var r cue.Runtime
 var bi *build.Instance
 
 var inModule = false
+
+func evalExpr(expr string) error {
+
+	astExpr, err := parser.ParseExpr("", expr)
+	if err != nil {
+		return err
+	}
+
+	bii, err := buildI()
+	if err != nil {
+		return err
+	}
+	val := bii.Eval(astExpr)
+	if val.Err() != nil {
+		return val.Err()
+	}
+	return pprint(val)
+}
 
 func addExpr(expr string) error {
 	// TODO maybe try to build here, so we can
