@@ -80,7 +80,7 @@ func runRepl(cmd *Command, args []string) error {
 			break
 		}
 
-		if strings.HasPrefix(text, ";") {
+		if strings.HasPrefix(text, ":") {
 			err := ExecCommand(text)
 			if err != nil {
 				fmt.Println(err)
@@ -197,7 +197,7 @@ func init() {
 }
 
 func ExecCommand(text string) error {
-	commandParts := strings.Fields(strings.TrimPrefix(text, ";"))
+	commandParts := strings.Fields(strings.TrimPrefix(text, ":"))
 	command := commandParts[0]
 	if command == "i" || command == "inject" {
 		file := commandParts[1]
