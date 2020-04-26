@@ -6,6 +6,8 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+	goruntime "runtime"
+	"runtime/debug"
 	"strings"
 
 	"github.com/chzyer/readline"
@@ -79,7 +81,15 @@ func (*completer) Do(line []rune, pos int) ([][]rune, int) {
 }
 
 func runRepl(cmd *Command, args []string) error {
-	fmt.Println("Welcome to the CUE repl")
+	version := defaultVersion
+	if bi, ok := debug.ReadBuildInfo(); ok && version == defaultVersion {
+		// No specific version provided via version
+		version = bi.Main.Version
+	}
+	fmt.Printf("cue version %v %s/%s\n",
+		version,
+		goruntime.GOOS,
+		goruntime.GOARCH)
 
 	usr, err := user.Current()
 	if err != nil {
@@ -113,6 +123,7 @@ func runRepl(cmd *Command, args []string) error {
 	} else {
 		fmt.Println("(running in freestyle mode)")
 	}
+	fmt.Println("Type ':help' for help")
 
 	for {
 		line, err := rl.Readline()
