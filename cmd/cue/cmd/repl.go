@@ -117,7 +117,7 @@ func runRepl(cmd *Command, args []string) error {
 	}
 	defer rl.Close()
 
-	mod, inMod := Module()
+	mod, inMod := module()
 	if inMod {
 		fmt.Println("(running in module " + mod + ")")
 	} else {
@@ -244,7 +244,7 @@ func resetI() {
 	}
 }
 
-func Module() (string, bool) {
+func module() (string, bool) {
 	if inModule {
 		return bi.Module, true
 	}
