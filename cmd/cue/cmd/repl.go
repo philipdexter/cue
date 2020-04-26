@@ -105,7 +105,7 @@ func runRepl(cmd *Command, args []string) error {
 	}
 
 	rl, err := readline.NewEx(&readline.Config{
-		Prompt:            "\033[34m>\033[0m ",
+		Prompt:            "> ",
 		HistoryFile:       filepath.Join(cueConfigDir, ".hist"),
 		HistorySearchFold: true,
 		EOFPrompt:         "^D",
@@ -123,7 +123,7 @@ func runRepl(cmd *Command, args []string) error {
 	} else {
 		fmt.Println("(running in freestyle mode)")
 	}
-	fmt.Println("Type ':help' for help")
+	fmt.Println("Type ':help' for help (^C or ^D to exit)")
 
 	for {
 		line, err := rl.Readline()
