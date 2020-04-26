@@ -123,7 +123,7 @@ func runRepl(cmd *Command, args []string) error {
 	} else {
 		fmt.Println("(running in freestyle mode)")
 	}
-	fmt.Println("Type ':help' for help (^C or ^D to exit)")
+	fmt.Println("Type ':help' for help (type ^C or ^D to exit)")
 
 	for {
 		line, err := rl.Readline()
