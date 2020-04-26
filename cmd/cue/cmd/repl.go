@@ -20,6 +20,10 @@ import (
 	"cuelang.org/go/cue/parser"
 )
 
+const (
+	flagLoadModule flagName = "load-module"
+)
+
 func newReplCmd(c *Command) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "repl",
@@ -31,6 +35,10 @@ will read the module files. If there is no module
 in the current directory then the repl starts in freestyle mode.`,
 		RunE: mkRunE(c, runRepl),
 	}
+
+	cmd.Flags().BoolP(string(flagLoadModule), "m", true,
+		"Autoload a module from the current directory")
+
 	return cmd
 }
 
@@ -117,7 +125,13 @@ func runRepl(cmd *Command, args []string) error {
 	}
 	defer rl.Close()
 
-	mod, inMod := module()
+	var (
+		mod   = ""
+		inMod = false
+	)
+	if flagLoadModule.Bool(cmd) {
+		mod, inMod = module()
+	}
 	if inMod {
 		fmt.Println("(running in module " + mod + ")")
 	} else {
