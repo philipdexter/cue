@@ -252,6 +252,10 @@ func execCommand(text string) error {
 	commandParts := strings.Fields(strings.TrimPrefix(text, ":"))
 	command := commandParts[0]
 	if command == "i" || command == "inject" {
+		if len(commandParts) != 2 {
+			fmt.Println(":inject takes one argument")
+			return nil
+		}
 		file := commandParts[1]
 		err := bi.AddFile(file, nil)
 		if err != nil {
@@ -264,6 +268,10 @@ func execCommand(text string) error {
 		fmt.Println("l/lookup <path> -- print the value at <path>")
 		fmt.Println("p/print -- print the current value")
 	} else if command == "p" || command == "print" {
+		if len(commandParts) != 1 {
+			fmt.Println(":print takes no arguments")
+			return nil
+		}
 		bii, err := buildI()
 		if err != nil {
 			return err
@@ -273,6 +281,10 @@ func execCommand(text string) error {
 			return err
 		}
 	} else if command == "l" || command == "lookup" {
+		if len(commandParts) != 2 {
+			fmt.Println(":lookup requires one argument")
+			return nil
+		}
 		bii, err := buildI()
 		if err != nil {
 			return err
