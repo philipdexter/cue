@@ -272,10 +272,12 @@ func init() {
 func execCommand(text string) error {
 	commandParts := strings.Fields(strings.TrimPrefix(text, ":"))
 	command := commandParts[0]
+
 	if command == "help" {
 		// TODO update help
 		fmt.Println("help -- print help text")
 		fmt.Println("p/print -- print the current value")
+		return nil
 	} else if command == "p" || command == "print" {
 		if len(commandParts) != 1 {
 			fmt.Println(":print takes no arguments")
@@ -289,6 +291,8 @@ func execCommand(text string) error {
 		if err != nil {
 			return err
 		}
+		return nil
 	}
-	return nil
+
+	return fmt.Errorf("unknown command %s", text)
 }
