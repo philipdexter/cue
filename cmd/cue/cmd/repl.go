@@ -24,6 +24,11 @@ const (
 	flagLoadModule flagName = "load-module"
 )
 
+const (
+	defaultPrompt   = "> "
+	multilinePrompt = "@ "
+)
+
 func newReplCmd(c *Command) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "repl",
@@ -53,6 +58,7 @@ func (*completer) Do(line []rune, pos int) ([][]rune, int) {
 			[]rune("help"),
 			[]rune("p"),
 			[]rune("print"),
+			[]rune("@"),
 		}, 1
 	}
 
@@ -64,6 +70,7 @@ func (*completer) Do(line []rune, pos int) ([][]rune, int) {
 			[]rune(":help"),
 			[]rune(":p"),
 			[]rune(":print"),
+			[]rune(":@"),
 		}...)
 	}
 
@@ -120,12 +127,13 @@ func runRepl(cmd *Command, args []string) error {
 	}
 
 	rl, err := readline.NewEx(&readline.Config{
-		Prompt:            "> ",
-		HistoryFile:       filepath.Join(cueConfigDir, ".hist"),
-		HistorySearchFold: true,
-		EOFPrompt:         "^D",
-		InterruptPrompt:   "^C",
-		AutoComplete:      &completer{},
+		Prompt:                 "> ",
+		HistoryFile:            filepath.Join(cueConfigDir, ".hist"),
+		HistorySearchFold:      true,
+		EOFPrompt:              "^D",
+		InterruptPrompt:        "^C",
+		AutoComplete:           &completer{},
+		DisableAutoSaveHistory: true,
 	})
 	if err != nil {
 		panic(err)
@@ -139,6 +147,11 @@ func runRepl(cmd *Command, args []string) error {
 	}
 	fmt.Println("Type ':help' for help (type ^C or ^D to exit)")
 
+	var (
+		lines        []string
+		multiline    bool
+		wasMultiline bool
+	)
 	for {
 		line, err := rl.Readline()
 		if err == readline.ErrInterrupt {
@@ -151,24 +164,54 @@ func runRepl(cmd *Command, args []string) error {
 			break
 		}
 
-		text := strings.TrimSpace(line)
+		line = strings.TrimRight(line, " \t\n")
+		if len(line) == 0 {
+			continue
+		}
 
-		if strings.HasPrefix(text, ":") {
-			err := execCommand(text)
+		wasMultiline = false
+		if line == ":@" {
+			if multiline {
+				multiline = false
+				wasMultiline = true
+				line = ""
+				rl.SetPrompt(defaultPrompt)
+			} else {
+				multiline = true
+				rl.SetPrompt(multilinePrompt)
+				continue
+			}
+		}
+
+		lines = append(lines, line)
+
+		if multiline {
+			continue
+		}
+
+		if !wasMultiline && strings.HasPrefix(line, ":") {
+			err := execCommand(line)
 			if err != nil {
 				fmt.Println(err)
 			}
 		} else {
 			var err error
-			if strings.HasPrefix(text, "@") {
-				err = addExpr(strings.TrimPrefix(text, "@"))
+			if wasMultiline || strings.HasPrefix(line, "@") {
+				err = addStmt(strings.TrimPrefix(strings.Join(lines, "\n"), "@"))
 			} else {
-				err = evalExpr(text)
+				err = evalExpr(line)
 			}
 			if err != nil {
 				fmt.Println(err)
 			}
 		}
+
+		if len(lines) > 1 {
+			rl.SaveHistory(strings.Join(lines, "\n"))
+		} else {
+			rl.SaveHistory(strings.Join(lines, ""))
+		}
+		lines = lines[:0]
 	}
 
 	fmt.Println("bye")
@@ -200,7 +243,7 @@ func evalExpr(expr string) error {
 	return pprint(val)
 }
 
-func addExpr(expr string) error {
+func addStmt(expr string) error {
 	// TODO maybe try to build here, so we can
 	// catch errors earlier
 
