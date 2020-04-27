@@ -51,8 +51,6 @@ func (*completer) Do(line []rune, pos int) ([][]rune, int) {
 	if pos > 0 && line[pos-1] == ':' {
 		return [][]rune{
 			[]rune("help"),
-			[]rune("l"),
-			[]rune("lookup"),
 			[]rune("p"),
 			[]rune("print"),
 		}, 1
@@ -64,8 +62,6 @@ func (*completer) Do(line []rune, pos int) ([][]rune, int) {
 	if len(r.TrimSpaceLeft(line)) == 0 {
 		out = append(out, [][]rune{
 			[]rune(":help"),
-			[]rune(":l"),
-			[]rune(":lookup"),
 			[]rune(":p"),
 			[]rune(":print"),
 		}...)
@@ -276,21 +272,9 @@ func init() {
 func execCommand(text string) error {
 	commandParts := strings.Fields(strings.TrimPrefix(text, ":"))
 	command := commandParts[0]
-	if command == "i" || command == "inject" {
-		if len(commandParts) != 2 {
-			fmt.Println(":inject takes one argument")
-			return nil
-		}
-		file := commandParts[1]
-		err := bi.AddFile(file, nil)
-		if err != nil {
-			return err
-		}
-		return nil
-	} else if command == "help" {
+	if command == "help" {
 		// TODO update help
 		fmt.Println("help -- print help text")
-		fmt.Println("l/lookup <path> -- print the value at <path>")
 		fmt.Println("p/print -- print the current value")
 	} else if command == "p" || command == "print" {
 		if len(commandParts) != 1 {
@@ -302,23 +286,6 @@ func execCommand(text string) error {
 			return err
 		}
 		err = pprint(bii.Value())
-		if err != nil {
-			return err
-		}
-	} else if command == "l" || command == "lookup" {
-		if len(commandParts) != 2 {
-			fmt.Println(":lookup requires one argument")
-			return nil
-		}
-		bii, err := buildI()
-		if err != nil {
-			return err
-		}
-		ii := bii.Value().Lookup(strings.Split(commandParts[1], ".")...)
-		if !ii.Exists() {
-			fmt.Println("error: no value")
-		}
-		err = pprint(ii)
 		if err != nil {
 			return err
 		}
