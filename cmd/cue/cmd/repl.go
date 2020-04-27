@@ -85,6 +85,17 @@ func (*completer) Do(line []rune, pos int) ([][]rune, int) {
 }
 
 func runRepl(cmd *Command, args []string) error {
+	var (
+		mod   = ""
+		inMod = false
+	)
+	if flagLoadModule.Bool(cmd) {
+		if initModule() {
+			inMod = true
+			mod = bi.Module
+		}
+	}
+
 	version := defaultVersion
 	if bi, ok := debug.ReadBuildInfo(); ok && version == defaultVersion {
 		// No specific version provided via version
@@ -121,13 +132,6 @@ func runRepl(cmd *Command, args []string) error {
 	}
 	defer rl.Close()
 
-	var (
-		mod   = ""
-		inMod = false
-	)
-	if flagLoadModule.Bool(cmd) {
-		mod, inMod = module()
-	}
 	if inMod {
 		fmt.Println("(running in module " + mod + ")")
 	} else {
@@ -176,9 +180,7 @@ func runRepl(cmd *Command, args []string) error {
 
 var r cue.Runtime
 
-var bi *build.Instance
-
-var inModule = false
+var bi = &build.Instance{}
 
 func evalExpr(expr string) error {
 
@@ -239,31 +241,17 @@ func pprint(v cue.Value) error {
 	return nil
 }
 
-func resetI() {
-	if inModule {
+func initModule() bool {
+	_, err := os.Stat("cue.mod")
+	if !os.IsNotExist(err) {
 		bis := load.Instances([]string{}, nil)
 		if len(bis) != 1 {
 			panic("len(bis) != 1")
 		}
 		bi = bis[0]
-	} else {
-		bi = &build.Instance{}
+		return true
 	}
-}
-
-func module() (string, bool) {
-	if inModule {
-		return bi.Module, true
-	}
-
-	return "", false
-}
-
-func init() {
-	_, err := os.Stat("cue.mod")
-	inModule = !os.IsNotExist(err)
-
-	resetI()
+	return false
 }
 
 func execCommand(text string) error {
