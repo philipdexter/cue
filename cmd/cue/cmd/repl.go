@@ -148,9 +148,6 @@ func runRepl(cmd *Command, args []string) error {
 		}
 
 		text := strings.TrimSpace(line)
-		if text == "exit" {
-			break
-		}
 
 		if strings.HasPrefix(text, ":") {
 			err := execCommand(text)
