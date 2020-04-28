@@ -198,6 +198,8 @@ func runRepl(cmd *Command, args []string) error {
 			var err error
 			if wasMultiline || strings.HasPrefix(line, "@") {
 				err = addStmt(strings.TrimPrefix(strings.Join(lines, "\n"), "@"))
+				// TODO if the statment had an error, "undo" the addstmt
+				// (probably requires building)
 			} else {
 				err = evalExpr(line)
 			}
@@ -299,6 +301,9 @@ func initModule() bool {
 
 func execCommand(text string) error {
 	commandParts := strings.Fields(strings.TrimPrefix(text, ":"))
+	if len(commandParts) == 0 {
+		return nil
+	}
 	command := commandParts[0]
 
 	if command == "help" {
