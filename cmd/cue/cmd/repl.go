@@ -51,9 +51,8 @@ type completer struct{}
 
 func (*completer) Do(line []rune, pos int) ([][]rune, int) {
 
-	// TODO make better, since this will
-	// match 'a :_'
-	if pos > 0 && line[pos-1] == ':' {
+	// TODO make better
+	if pos > 0 && line[pos-1] == ';' {
 		return [][]rune{
 			[]rune("help"),
 			[]rune("p"),
@@ -67,10 +66,10 @@ func (*completer) Do(line []rune, pos int) ([][]rune, int) {
 	var r readline.Runes
 	if len(r.TrimSpaceLeft(line)) == 0 {
 		out = append(out, [][]rune{
-			[]rune(":help"),
-			[]rune(":p"),
-			[]rune(":print"),
-			[]rune(":@"),
+			[]rune(";help"),
+			[]rune(";p"),
+			[]rune(";print"),
+			[]rune(";@"),
 		}...)
 	}
 
@@ -145,7 +144,7 @@ func runRepl(cmd *Command, args []string) error {
 	} else {
 		fmt.Println("(running in freestyle mode)")
 	}
-	fmt.Println("Type ':help' for help (type ^C or ^D to exit)")
+	fmt.Println("Type ';help' for help (type ^C or ^D to exit)")
 
 	var (
 		lines        []string
@@ -170,7 +169,7 @@ func runRepl(cmd *Command, args []string) error {
 		}
 
 		wasMultiline = false
-		if line == ":@" {
+		if line == ";@" {
 			if multiline {
 				multiline = false
 				wasMultiline = true
@@ -189,7 +188,7 @@ func runRepl(cmd *Command, args []string) error {
 			continue
 		}
 
-		if !wasMultiline && strings.HasPrefix(line, ":") {
+		if !wasMultiline && strings.HasPrefix(line, ";") {
 			err := execCommand(line)
 			if err != nil {
 				fmt.Println(err)
@@ -300,7 +299,7 @@ func initModule() bool {
 }
 
 func execCommand(text string) error {
-	commandParts := strings.Fields(strings.TrimPrefix(text, ":"))
+	commandParts := strings.Fields(strings.TrimPrefix(text, ";"))
 	if len(commandParts) == 0 {
 		return nil
 	}
@@ -313,7 +312,7 @@ func execCommand(text string) error {
 		return nil
 	} else if command == "p" || command == "print" {
 		if len(commandParts) != 1 {
-			fmt.Println(":print takes no arguments")
+			fmt.Println(";print takes no arguments")
 			return nil
 		}
 		bii, err := buildI()
